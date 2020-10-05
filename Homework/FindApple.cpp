@@ -33,13 +33,13 @@ void findApple( Mat input ) {
 
     cvtColor( img, gray_img, COLOR_BGR2GRAY );
     erode( gray_img, gray_img, Mat());
-    erode( gray_img, gray_img, Mat());                                           
+    erode( gray_img, gray_img, Mat());                                           //此处乃玄学操作，针对这一图片，通过两次侵蚀可以让发图像边缘的噪点被清除
     adaptiveThreshold( gray_img, threshold_img, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 21, 5 );
 
     dilate( threshold_img, threshold_img, Mat());
-    dilate( threshold_img, threshold_img, Mat());
+    dilate( threshold_img, threshold_img, Mat());                                //做两次扩张，使得图像上不连续的点连接起来
 
-    Canny( threshold_img, canny_img, 5, 30 );
+    Canny( threshold_img, canny_img, 5, 30 );                       //这句命令在最后并没有被用到
 
     findContours( threshold_img, contours, RETR_LIST, CHAIN_APPROX_SIMPLE );
     for (size_t i = 0; i < contours.size(); ++i )
@@ -47,7 +47,7 @@ void findApple( Mat input ) {
             Rect bounding_rect = boundingRect( contours[i] );
             rectangle( input, Point( bounding_rect.x, bounding_rect.y ), Point( bounding_rect.x + bounding_rect.width, bounding_rect.y + bounding_rect.height),
                        Scalar( 0, 255, 0 ), 3);
-        }
+        }                                                                              //绘画符合要求的轮廓
 
 //    namedWindow( "R_channel", WINDOW_AUTOSIZE );
 //    namedWindow( "gray_img", WINDOW_AUTOSIZE );
