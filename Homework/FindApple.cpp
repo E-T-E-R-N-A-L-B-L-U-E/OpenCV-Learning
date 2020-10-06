@@ -25,16 +25,17 @@ void findApple( Mat input ) {
                                                                                         //以此使得G通道较高的叶子区域被筛选出来
     channel[1] = Mat::zeros( input.rows, input.cols, CV_8UC1 );
     G_channel = channel[1].clone();
-    threshold( R_channel, channel[2], 30, 255, THRESH_TOZERO );
+    threshold( R_channel, channel[2], 20, 255, THRESH_TOZERO );
     threshold( B_channel, channel[0], 0, 255, THRESH_TOZERO );    //剔除B和R通道较小的像素点，也就是可能的叶子部分
 
     merge( channel, 3, img );
 
+    GaussianBlur( img, img, Size(3, 3), 3 );
 
     cvtColor( img, gray_img, COLOR_BGR2GRAY );
     erode( gray_img, gray_img, Mat());
     erode( gray_img, gray_img, Mat());                                           //此处乃玄学操作，针对这一图片，通过两次侵蚀可以让发图像边缘的噪点被清除
-    adaptiveThreshold( gray_img, threshold_img, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 21, 5 );
+    adaptiveThreshold( gray_img, threshold_img, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 21, 3 );
 
     dilate( threshold_img, threshold_img, Mat());
     dilate( threshold_img, threshold_img, Mat());                                //做两次扩张，使得图像上不连续的点连接起来
@@ -47,6 +48,7 @@ void findApple( Mat input ) {
             Rect bounding_rect = boundingRect( contours[i] );
             rectangle( input, Point( bounding_rect.x, bounding_rect.y ), Point( bounding_rect.x + bounding_rect.width, bounding_rect.y + bounding_rect.height),
                        Scalar( 0, 255, 0 ), 3);
+            break;
         }                                                                              //绘画符合要求的轮廓
 
 //    namedWindow( "R_channel", WINDOW_AUTOSIZE );
@@ -65,6 +67,7 @@ void findApple( Mat input ) {
 }
 int main() {
     Mat img = imread( "../apple.png" );
+//    Mat img = imread( "../apple2.bmp" );
 
     findApple( img );
 

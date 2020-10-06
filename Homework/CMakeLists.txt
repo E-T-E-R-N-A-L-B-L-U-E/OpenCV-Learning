@@ -6,5 +6,5 @@ find_package( OpenCV REQUIRED )
 
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-add_executable( Homework FindApple.cpp)
+add_executable( Homework CalibrateCamera.cpp)
 target_link_libraries( Homework ${OpenCV_LIBS} )

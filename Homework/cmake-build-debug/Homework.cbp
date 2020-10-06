@@ -84,7 +84,7 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/home/mustang/CLionProjects/Homework/FindApple.cpp">
+		<Unit filename="/home/mustang/CLionProjects/Homework/CalibrateCamera.cpp">
 			<Option target="Homework"/>
 		</Unit>
 		<Unit filename="/home/mustang/CLionProjects/Homework/CMakeLists.txt">

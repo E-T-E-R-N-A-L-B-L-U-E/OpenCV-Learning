@@ -57,27 +57,27 @@ include CMakeFiles/Homework.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/Homework.dir/flags.make
 
-CMakeFiles/Homework.dir/FindApple.cpp.o: CMakeFiles/Homework.dir/flags.make
-CMakeFiles/Homework.dir/FindApple.cpp.o: ../FindApple.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mustang/CLionProjects/Homework/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Homework.dir/FindApple.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Homework.dir/FindApple.cpp.o -c /home/mustang/CLionProjects/Homework/FindApple.cpp
+CMakeFiles/Homework.dir/CalibrateCamera.cpp.o: CMakeFiles/Homework.dir/flags.make
+CMakeFiles/Homework.dir/CalibrateCamera.cpp.o: ../CalibrateCamera.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mustang/CLionProjects/Homework/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Homework.dir/CalibrateCamera.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Homework.dir/CalibrateCamera.cpp.o -c /home/mustang/CLionProjects/Homework/CalibrateCamera.cpp
 
-CMakeFiles/Homework.dir/FindApple.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Homework.dir/FindApple.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mustang/CLionProjects/Homework/FindApple.cpp > CMakeFiles/Homework.dir/FindApple.cpp.i
+CMakeFiles/Homework.dir/CalibrateCamera.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Homework.dir/CalibrateCamera.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mustang/CLionProjects/Homework/CalibrateCamera.cpp > CMakeFiles/Homework.dir/CalibrateCamera.cpp.i
 
-CMakeFiles/Homework.dir/FindApple.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Homework.dir/FindApple.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mustang/CLionProjects/Homework/FindApple.cpp -o CMakeFiles/Homework.dir/FindApple.cpp.s
+CMakeFiles/Homework.dir/CalibrateCamera.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Homework.dir/CalibrateCamera.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mustang/CLionProjects/Homework/CalibrateCamera.cpp -o CMakeFiles/Homework.dir/CalibrateCamera.cpp.s
 
 # Object files for target Homework
 Homework_OBJECTS = \
-"CMakeFiles/Homework.dir/FindApple.cpp.o"
+"CMakeFiles/Homework.dir/CalibrateCamera.cpp.o"
 
 # External object files for target Homework
 Homework_EXTERNAL_OBJECTS =
 
-Homework: CMakeFiles/Homework.dir/FindApple.cpp.o
+Homework: CMakeFiles/Homework.dir/CalibrateCamera.cpp.o
 Homework: CMakeFiles/Homework.dir/build.make
 Homework: /usr/local/lib/libopencv_gapi.so.4.5.0
 Homework: /usr/local/lib/libopencv_stitching.so.4.5.0
