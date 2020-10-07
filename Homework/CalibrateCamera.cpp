@@ -1,133 +1,106 @@
-//
-// Created by mustang on 2020/10/6.
-// Homework: Calibrate the Camera
-//
+////
+//// Created by mustang on 2020/10/6.
+//// Homework: Calibrate the Camera
+////
 #include <iostream>
-#include <sstream>
-#include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 
 using namespace cv;
-using namespace std;
 
-
-void calibrateCamera( ) {
+void calibrateCamera() {
     const int board_w = 9, board_h = 6;
     const int board_n = board_w * board_h;
-    const int n_board = 40;
-    Mat img, gray_img, drawn_img;
-    Mat point_pix_pos( n_board * board_n, 3, CV_32FC1 );
-    Mat point_grid_pos( n_board * board_n, 3, CV_32FC1 );
-    Mat point_count( n_board, 1, CV_32SC1 );
-    Mat intrinsic_matrix( 3, 3, CV_32FC1 );
-//    Mat intrinsic_matrix;
-    Mat distortion_coeffs( 5, 1, CV_32FC1 );
-//    Mat distortion_coeffs;
-    std::vector< Point2f > corners;
-    int corner_count = 0;
-    int successes = 0, step = 0;
+    Size board_size( 9, 6 );
 
-    namedWindow( "drawn_chessboard", WINDOW_AUTOSIZE );
-    for (int i = 0; i <= 40; i++ ) {
+    Mat img, gray_img, drawn_img;
+    std::vector< Point2f > point_pix_pos_buf;
+    std::vector< std::vector<Point2f> > point_pix_pos;
+
+    int found, successes = 0;
+    Size img_size;
+
+    for (int i = 0; i <=40; i++ ) {
         String loc = "../chess/" + std::__cxx11::to_string( i ) + ".jpg";
         img = imread( loc );
-        cvtColor( img, gray_img, COLOR_BGR2GRAY );
-        int found = findChessboardCorners( gray_img,
-                                           Size( board_w, board_h ),
-                                           corners
-                                           );
-        drawn_img = img.clone();
-        drawChessboardCorners( drawn_img, Size( board_w, board_h ), corners, found );
-
-        imshow( "drawn_chessboard", drawn_img );
-
-        if ( corners.size() == board_n ) {
-            for (int j = 0; j < board_n; j++, step++) {
-                point_pix_pos.at< float >( step, 0 ) = corners[ j ].x;
-                point_pix_pos.at< float >( step, 1 ) = corners[ j ].y;
-                point_grid_pos.at< float >( step, 0 ) = j / board_w;
-                point_grid_pos.at< float >( step, 1 ) = j % board_w;
-                point_grid_pos.at< float >( step, 2 ) = 0.0f;
-            }
-            point_count.at< float >( successes, 1 ) = board_n;
+        if ( img.empty() ) {
+            std::cout << "failed to read image: " << loc << std::endl;
+            continue;
+        } else {
+            std::cout << "read image " << loc << "successfully" << std::endl;
+        }
+        if ( !i ) {
+            img_size.width = img.cols;
+            img_size.height = img.rows;
+        }
+        found = findChessboardCorners( img, board_size, point_pix_pos_buf );
+        if ( found && point_pix_pos_buf.size() == board_n ) {
             successes++;
+            cvtColor( img, gray_img, COLOR_BGR2GRAY );
+            find4QuadCornerSubpix( gray_img, point_pix_pos_buf, Size( 5, 5 ) );
+            point_pix_pos.push_back( point_pix_pos_buf );
+            drawn_img = img.clone();
+            drawChessboardCorners( drawn_img, board_size, point_pix_pos_buf, found );
+        } else
+            std::cout << "\tbut failed to found all chess board corners in this image" << std::endl;
+        point_pix_pos_buf.clear();
+    }
+    std::cout << successes << " useful chess boards" << std::endl;
+
+    Size square_size( 10, 10 );
+    std::vector< std::vector< Point3f > > point_grid_pos;
+    std::vector< Point3f > point_grid_pos_buf;
+    std::vector< int > point_count;
+
+    Mat camera_matrix( 3, 3, CV_32FC1, Scalar::all( 0 ) );
+    Mat dist_coeffs( 1, 5, CV_32FC1, Scalar::all( 0 ) );
+    std::vector< Mat > rvecs;
+    std::vector< Mat > tvecs;
+
+    for (int i = 0; i < successes; i++ ) {
+        for (int j = 0; j < board_h; j++ ) {
+            for (int k = 0; k < board_w; k++ ){
+                Point3f pt;
+                pt.x = k * square_size.width;
+                pt.y = j * square_size.height;
+                pt.z = 0;
+                point_grid_pos_buf.push_back( pt );
+            }
         }
-
-        corners.clear();
-
-        int c = waitKey( 1000 );
-        if ( c == 'p' ) {
-            c = 0;
-            while ( c != 'p' && c != 27 )
-                c = waitKey( 1000 );
-        }
-        if ( c == 27 )
-            break;
-    }
-    destroyWindow( "drawn_chessboard" );
-
-    std::vector<Vec2f> point_pix_pos2;
-    std::vector<Vec3f> point_grid_pos2;
-
-    Mat rvec(3,1, CV_64FC1);
-    Mat tvec(3,1, CV_64FC1);
-    vector<Mat> rvecs;
-    vector<Mat> tvecs;
-    rvecs.push_back(rvec);
-    tvecs.push_back(tvec);
-
-    Mat point_count2( successes * board_n, 1, CV_32SC1 );
-
-    for (int i = 0; i < successes * board_n; i++) {
-        point_pix_pos2.push_back( Vec2f(
-                point_pix_pos.at< float >( i, 0 ),
-                point_pix_pos.at< float >( i, 1 )
-                ) );
-        point_grid_pos2.push_back( Vec3f(
-                point_grid_pos.at< float >( i, 0 ),
-                point_grid_pos.at< float >( i, 1 ),
-                point_grid_pos.at< float >( i, 2 )
-                ) );
-//        point_pix_pos2.at< float >( i, 0 ) = ;
-//        point_pix_pos2.at< float >( i, 1 ) = ;
-//        point_grid_pos2.at< float >( i, 0 ) = ;
-//        point_grid_pos2.at< float >( i, 1 ) = ;
-//        point_grid_pos2.at< float >( i, 2 ) = ;
-    }
-    for (int i = 0; i <successes; i++) {
-        point_count2.at< int >( i, 1 ) = point_count.at< int >( i, 1 );
+        point_grid_pos.push_back( point_grid_pos_buf );
+        point_grid_pos_buf.clear();
+        point_count.push_back( board_h * board_w );
     }
 
-    intrinsic_matrix.zeros( Size( 3, 3 ), CV_32FC1 );
-    distortion_coeffs.zeros( Size( 5, 1 ), CV_32FC1 );
-//    tvecs.push_back(Mat());
-//    rvecs.push_back(Mat());
-    calibrateCamera( point_grid_pos2, point_pix_pos2, img.size(), intrinsic_matrix, distortion_coeffs, rvecs, tvecs );
-    Mat map_x, map_y;
+    calibrateCamera( point_grid_pos, point_pix_pos, img_size, camera_matrix, dist_coeffs, rvecs, tvecs );
+    std::cout << "Successfully calibrate camera!" << std::endl;
+    std::cout << "The camera matrix is:\n" << camera_matrix << std::endl;
+    std::cout << "This distortion coeff is: \n" << dist_coeffs << std::endl;
 
-#define IMG_SIZE ( Size( img.cols, img.rows ) )
+    Mat map_x( img_size, CV_32FC1 );
+    Mat map_y( img_size, CV_32FC1 );
     initUndistortRectifyMap(
-            intrinsic_matrix,
-            distortion_coeffs,
+            camera_matrix,
+            dist_coeffs,
             Mat(),
-            getOptimalNewCameraMatrix( intrinsic_matrix, distortion_coeffs, IMG_SIZE, 1, IMG_SIZE, 0),
-            IMG_SIZE,
-            CV_16SC2,
+            camera_matrix,
+            img_size,
+            CV_32FC1,
             map_x,
             map_y
             );
-#undef IMG_SIZE
 
+    Mat output_img;
     namedWindow( "Calibrated Image", WINDOW_AUTOSIZE );
-    for (int i = 0; i < n_board; i++ ){
+    for (int i = 0; i < 40; i++ ){
         String loc = "../chess/" + std::__cxx11::to_string( i ) + ".jpg";
         img = imread( loc );
         Mat tmp = img.clone();
         remap( tmp, img, map_x, map_y, INTER_LINEAR );
         imshow( "Calibrated Image", img );
+        output_img = img.clone();
 
         int c = waitKey( 1000 );
         if ( c == 'p') {
@@ -139,26 +112,20 @@ void calibrateCamera( ) {
             break;
     }
     destroyWindow( "Calibrated Image" );
+
+//    namedWindow( "drawn chess board", WINDOW_AUTOSIZE );
+//    namedWindow( "output", WINDOW_AUTOSIZE );
+//    pyrDown( drawn_img, drawn_img, Size( img_size.width / 2, img_size.height / 2) );
+//    pyrDown( output_img, output_img, Size( img_size.width / 2, img_size.height / 2) );
+//    imshow( "drawn chess board", drawn_img );
+//    imshow( "output", output_img );
+//
+//    waitKey( 0 );
+//
+//    destroyAllWindows();
 }
+
 int main() {
     calibrateCamera();
     return 0;
 }
-//Mat gray_img, output;
-//std::vector< Point2f > corners;
-//int corners_count, pattern_was_found;
-//cvtColor( input, gray_img, COLOR_BGR2GRAY );
-//pattern_was_found = findChessboardCorners( gray_img, Size( 9, 6 ), corners, corners_count );
-//output = input.clone();
-//drawChessboardCorners( output, Size( 9, 6 ), corners, pattern_was_found );
-//
-//namedWindow( "input", WINDOW_AUTOSIZE );
-//namedWindow( "output", WINDOW_AUTOSIZE );
-//
-//imshow( "input", input );
-//imshow( "output", output );
-//
-//waitKey( 0 );
-//
-//destroyWindow( "input" );
-//destroyWindow( "output" );

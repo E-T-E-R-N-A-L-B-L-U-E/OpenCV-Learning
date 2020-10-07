@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/mustang/CLionProjects/Homework/CalibrateCamera.cpp" "/home/mustang/CLionProjects/Homework/cmake-build-debug/CMakeFiles/Homework.dir/CalibrateCamera.cpp.o"
+  "/home/mustang/CLionProjects/Homework/perspectiveTransform.cpp" "/home/mustang/CLionProjects/Homework/cmake-build-debug/CMakeFiles/Homework.dir/perspectiveTransform.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

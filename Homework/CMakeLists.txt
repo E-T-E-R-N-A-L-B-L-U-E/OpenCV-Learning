@@ -6,5 +6,5 @@ find_package( OpenCV REQUIRED )
 
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-add_executable( Homework CalibrateCamera.cpp)
+add_executable( Homework perspectiveTransform.cpp)
 target_link_libraries( Homework ${OpenCV_LIBS} )
