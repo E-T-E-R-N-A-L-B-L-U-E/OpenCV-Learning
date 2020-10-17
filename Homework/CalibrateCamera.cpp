@@ -10,7 +10,12 @@
 
 using namespace cv;
 
-void calibrateCamera() {
+Mat g_camera_matrix( 3, 3, CV_32FC1, Scalar( 0 ) );
+Mat g_distortion_coeffs( 1, 5, CV_32FC1, Scalar( 0 ) );
+std::vector< std::vector< Point3f > > g_point_grid_pos;
+std::vector< std::vector< Point2f > > g_point_pix_pos;
+
+void calibrateCamera( bool showImgResult ) {
     const int board_w = 9, board_h = 6;
     const int board_n = board_w * board_h;
     Size board_size( 9, 6 );
@@ -75,6 +80,11 @@ void calibrateCamera() {
     }
 
     calibrateCamera( point_grid_pos, point_pix_pos, img_size, camera_matrix, dist_coeffs, rvecs, tvecs );
+    g_camera_matrix = camera_matrix.clone();
+    g_distortion_coeffs = dist_coeffs.clone();
+    g_point_grid_pos.assign( point_grid_pos.begin(), point_grid_pos.end() );
+    g_point_pix_pos.assign( point_pix_pos.begin(), point_pix_pos.end() );
+
     std::cout << "Successfully calibrate camera!" << std::endl;
     std::cout << "The camera matrix is:\n" << camera_matrix << std::endl;
     std::cout << "This distortion coeff is: \n" << dist_coeffs << std::endl;
@@ -92,6 +102,10 @@ void calibrateCamera() {
             map_y
             );
 
+    if ( !showImgResult ) {
+        return ;
+    }
+
     Mat output_img;
     namedWindow( "Calibrated Image", WINDOW_AUTOSIZE );
     for (int i = 0; i < 40; i++ ){
@@ -102,30 +116,45 @@ void calibrateCamera() {
         imshow( "Calibrated Image", img );
         output_img = img.clone();
 
-        int c = waitKey( 1000 );
-        if ( c == 'p') {
-            c = 0;
-            while ( c != 'p' || c != 27 )
-                c = waitKey( 1000 );
-        }
-        if ( c == 27 )
-            break;
+//        int c = waitKey( 1000 );
+//        if ( c == 'p') {
+//            c = 0;
+//            while ( c != 'p' || c != 27 )
+//                c = waitKey( 1000 );
+//        }
+//        if ( c == 27 )
+//            break;
     }
     destroyWindow( "Calibrated Image" );
 
-//    namedWindow( "drawn chess board", WINDOW_AUTOSIZE );
-//    namedWindow( "output", WINDOW_AUTOSIZE );
-//    pyrDown( drawn_img, drawn_img, Size( img_size.width / 2, img_size.height / 2) );
-//    pyrDown( output_img, output_img, Size( img_size.width / 2, img_size.height / 2) );
-//    imshow( "drawn chess board", drawn_img );
-//    imshow( "output", output_img );
-//
-//    waitKey( 0 );
-//
-//    destroyAllWindows();
+    namedWindow( "drawn chess board", WINDOW_AUTOSIZE );
+    namedWindow( "output", WINDOW_AUTOSIZE );
+    pyrDown( drawn_img, drawn_img, Size( img_size.width / 2, img_size.height / 2) );
+    pyrDown( output_img, output_img, Size( img_size.width / 2, img_size.height / 2) );
+    imshow( "drawn chess board", drawn_img );
+    imshow( "output", output_img );
+
+    waitKey( 0 );
+
+    destroyAllWindows();
 }
 
+void findRTVec() {
+    Mat r_vec;
+    Mat t_vec;
+    Mat r_mat;
+    for ( int i = 0; i < g_point_pix_pos.size(); i++ ) {
+        solvePnP( g_point_grid_pos[ 0 ], g_point_pix_pos[ 0 ], g_camera_matrix, g_distortion_coeffs, r_vec, t_vec );
+        Rodrigues( r_vec, r_mat );
+        std::cout << "The r_vec and the t_vec of the img NO." << i << " is:\n" << r_mat << std::endl << t_vec << std::endl << std::endl;
+    }
+//    solvePnP( g_point_grid_pos, g_point_pix_pos, g_camera_matrix, g_distortion_coeffs, r_vecs, t_vecs );
+//    std::cout << "The r vec is:\n" << r_vecs << "\nThe t vec is:\n" << std::endl << t_vecs;
+}
+//triangulatePoints
+
 int main() {
-    calibrateCamera();
+    calibrateCamera( false );
+    findRTVec();
     return 0;
 }
