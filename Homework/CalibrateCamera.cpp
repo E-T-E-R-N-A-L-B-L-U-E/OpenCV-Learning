@@ -14,6 +14,8 @@ Mat g_camera_matrix( 3, 3, CV_32FC1, Scalar( 0 ) );
 Mat g_distortion_coeffs( 1, 5, CV_32FC1, Scalar( 0 ) );
 std::vector< std::vector< Point3f > > g_point_grid_pos;
 std::vector< std::vector< Point2f > > g_point_pix_pos;
+std::vector< Mat > g_r_mats;
+std::vector< Mat > g_t_vecs;
 
 void calibrateCamera( bool showImgResult ) {
     const int board_w = 9, board_h = 6;
@@ -139,22 +141,74 @@ void calibrateCamera( bool showImgResult ) {
     destroyAllWindows();
 }
 
-void findRTVec() {
+void findRTVec( bool echo = true ) {
     Mat r_vec;
     Mat t_vec;
     Mat r_mat;
+    g_r_mats.clear();
+    g_t_vecs.clear();
     for ( int i = 0; i < g_point_pix_pos.size(); i++ ) {
-        solvePnP( g_point_grid_pos[ 0 ], g_point_pix_pos[ 0 ], g_camera_matrix, g_distortion_coeffs, r_vec, t_vec );
+        g_r_mats.push_back( Mat( 3, 3, CV_32FC1, Scalar( 0 ) ) );
+        g_t_vecs.push_back( Mat( 3, 1, CV_32FC1, Scalar( 0 ) ) );
+        solvePnP( g_point_grid_pos[ i ], g_point_pix_pos[ i ], g_camera_matrix, g_distortion_coeffs, r_vec, t_vec );
         Rodrigues( r_vec, r_mat );
-        std::cout << "The r_vec and the t_vec of the img NO." << i << " is:\n" << r_mat << std::endl << t_vec << std::endl << std::endl;
+        g_r_mats[ i ] = r_mat.clone();
+        g_t_vecs[ i ] = t_vec.clone();
+        if ( echo )
+            std::cout << "The r_vec and the t_vec of the img NO." << i << " is:\n" << g_r_mats[ i ] << std::endl << g_t_vecs[ i ] << std::endl << std::endl;
     }
+//    std::cout<<"CHECK:" <<std::endl << g_r_mats[0] << std::endl<<g_r_mats[1]<<std::endl;
 //    solvePnP( g_point_grid_pos, g_point_pix_pos, g_camera_matrix, g_distortion_coeffs, r_vecs, t_vecs );
 //    std::cout << "The r vec is:\n" << r_vecs << "\nThe t vec is:\n" << std::endl << t_vecs;
 }
 //triangulatePoints
 
+void get3DPoint() {
+    std::cout << "start triangulate points" << std::endl;
+    Mat pos1;
+    Mat pos2;
+    Mat result;
+    std::vector< Point2f > proj_points1;
+    std::vector< Point2f > proj_points2;
+    undistortPoints( g_point_pix_pos[ 0 ], proj_points1, g_camera_matrix, g_distortion_coeffs );
+    undistortPoints( g_point_pix_pos[ 1 ], proj_points2, g_camera_matrix, g_distortion_coeffs );
+//    findRTVec( false );
+//    std::cout << g_r_mats[ 0 ] << std::endl << g_r_mats[ 1 ] << std::endl;
+    hconcat( g_r_mats[ 0 ], g_t_vecs[ 0 ], pos1 );
+    hconcat( g_r_mats[ 1 ], g_t_vecs[ 1 ], pos2 );
+
+    std::cout << "The position of the first camera is: " << std::endl;
+    std::cout << pos1 << std::endl;
+    std::cout << "The position of the second camera is: " << std::endl;
+    std::cout << pos2 << std::endl << std::endl;
+
+    triangulatePoints( pos1, pos2, proj_points1, proj_points2, result );
+//    std::cout << "The Point is: " << std::endl << result << std::endl;
+//    std::cout << "The Point is" << std::endl << result.at< float >( 0, 0 )
+//        << " " << result.at< float >( 1, 0 ) << " " << result.at< float >( 2, 0 )
+//        << " " << result.at< float >( 3, 0 ) << std::endl;
+    for ( int i = 0; i < result.cols; i++ )
+        result.col( i ) /= result.at< float >( 3, i );
+    transpose( result, result );
+
+/*     std::cout << "The Points are:" << std::endl;
+    for ( int i = 0; i < result.cols; i++ ) {
+        std::cout << "[ ";
+        for ( int j = 0; j < result.rows; j++ ) {
+            std::cout << result.at<float>(j, i);
+            if ( j == result.rows - 1 )
+                std::cout << " ]" << std::endl ;
+            else
+                std::cout << ", ";
+        }
+    }*/
+    for ( int i = 0; i < result.rows; i++ ) {
+        std::cout << "Point No." << i << ": \n" << result.row( i ) << std::endl;
+    }
+}
 int main() {
     calibrateCamera( false );
     findRTVec();
+    get3DPoint();
     return 0;
 }
