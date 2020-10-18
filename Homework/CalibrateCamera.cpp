@@ -157,9 +157,6 @@ void findRTVec( bool echo = true ) {
         if ( echo )
             std::cout << "The r_vec and the t_vec of the img NO." << i << " is:\n" << g_r_mats[ i ] << std::endl << g_t_vecs[ i ] << std::endl << std::endl;
     }
-//    std::cout<<"CHECK:" <<std::endl << g_r_mats[0] << std::endl<<g_r_mats[1]<<std::endl;
-//    solvePnP( g_point_grid_pos, g_point_pix_pos, g_camera_matrix, g_distortion_coeffs, r_vecs, t_vecs );
-//    std::cout << "The r vec is:\n" << r_vecs << "\nThe t vec is:\n" << std::endl << t_vecs;
 }
 //triangulatePoints
 
@@ -172,8 +169,7 @@ void get3DPoint() {
     std::vector< Point2f > proj_points2;
     undistortPoints( g_point_pix_pos[ 0 ], proj_points1, g_camera_matrix, g_distortion_coeffs );
     undistortPoints( g_point_pix_pos[ 1 ], proj_points2, g_camera_matrix, g_distortion_coeffs );
-//    findRTVec( false );
-//    std::cout << g_r_mats[ 0 ] << std::endl << g_r_mats[ 1 ] << std::endl;
+    findRTVec( false );
     hconcat( g_r_mats[ 0 ], g_t_vecs[ 0 ], pos1 );
     hconcat( g_r_mats[ 1 ], g_t_vecs[ 1 ], pos2 );
 
@@ -183,25 +179,10 @@ void get3DPoint() {
     std::cout << pos2 << std::endl << std::endl;
 
     triangulatePoints( pos1, pos2, proj_points1, proj_points2, result );
-//    std::cout << "The Point is: " << std::endl << result << std::endl;
-//    std::cout << "The Point is" << std::endl << result.at< float >( 0, 0 )
-//        << " " << result.at< float >( 1, 0 ) << " " << result.at< float >( 2, 0 )
-//        << " " << result.at< float >( 3, 0 ) << std::endl;
     for ( int i = 0; i < result.cols; i++ )
         result.col( i ) /= result.at< float >( 3, i );
     transpose( result, result );
 
-/*     std::cout << "The Points are:" << std::endl;
-    for ( int i = 0; i < result.cols; i++ ) {
-        std::cout << "[ ";
-        for ( int j = 0; j < result.rows; j++ ) {
-            std::cout << result.at<float>(j, i);
-            if ( j == result.rows - 1 )
-                std::cout << " ]" << std::endl ;
-            else
-                std::cout << ", ";
-        }
-    }*/
     for ( int i = 0; i < result.rows; i++ ) {
         std::cout << "Point No." << i << ": \n" << result.row( i ) << std::endl;
     }
